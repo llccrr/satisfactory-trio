@@ -5,8 +5,11 @@
 !.gitattributes
 !.gitignore
 !README.md
+!init-first-time.cmd
 !init-first-time.ps1
+!pull-shared-save.cmd
 !pull-shared-save.ps1
+!push-shared-save.cmd
 !push-shared-save.ps1
 
 # Shared Satisfactory saves for this world.

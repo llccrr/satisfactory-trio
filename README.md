@@ -23,13 +23,7 @@ Clonez le depot ou vous voulez, par exemple dans `Documents` :
 ```powershell
 git clone https://github.com/llccrr/satisfactory-trio.git
 cd satisfactory-trio
-.\init-first-time.ps1
-```
-
-Si PowerShell bloque les scripts :
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\init-first-time.ps1
+.\init-first-time.cmd
 ```
 
 Le script :
@@ -45,13 +39,13 @@ Le script :
 Avant de lancer Satisfactory :
 
 ```powershell
-.\pull-shared-save.ps1
+.\pull-shared-save.cmd
 ```
 
 Apres avoir quitte Satisfactory :
 
 ```powershell
-.\push-shared-save.ps1 "Session du soir"
+.\push-shared-save.cmd "Session du soir"
 ```
 
 ## Regle d'or
