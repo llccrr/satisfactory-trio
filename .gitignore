@@ -1,11 +1,11 @@
-# This repository lives directly in a Satisfactory SaveGames ID folder.
-# Ignore everything by default so personal saves never get committed by accident.
+# Ignore everything by default so personal saves and local config never get committed.
 *
 
 # Repository metadata and helper files.
 !.gitattributes
 !.gitignore
 !README.md
+!init-first-time.ps1
 !pull-shared-save.ps1
 !push-shared-save.ps1
 

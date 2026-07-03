@@ -1,12 +1,35 @@
 # Satisfactory Trio Save
 
-Ce depot Git partage uniquement cette save :
+Ce depot partage uniquement cette save :
 
 ```text
 Saiyajin x10 random MANUAL.sav
 ```
 
-Toutes les autres saves presentes dans le dossier Satisfactory sont ignorees par Git.
+Les autres saves Satisfactory restent dans le dossier du joueur et ne sont jamais ajoutees a Git.
+
+## Premiere installation
+
+Clonez le depot ou vous voulez, par exemple dans `Documents` :
+
+```powershell
+git clone https://github.com/llccrr/satisfactory-trio.git
+cd satisfactory-trio
+.\init-first-time.ps1
+```
+
+Si PowerShell bloque les scripts :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\init-first-time.ps1
+```
+
+Le script :
+
+- trouve `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames`
+- demande quel dossier joueur utiliser s'il en voit plusieurs
+- sauvegarde automatiquement une save locale du meme nom avant de la remplacer
+- memorise ce dossier dans `.satisfactory-target`, un fichier local ignore par Git
 
 ## Routine normale
 
@@ -19,43 +42,8 @@ Avant de lancer Satisfactory :
 Apres avoir quitte Satisfactory et fait une save manuelle :
 
 ```powershell
-.\push-shared-save.ps1
+.\push-shared-save.ps1 "Session du soir"
 ```
-
-Vous pouvez aussi donner un message de commit :
-
-```powershell
-.\push-shared-save.ps1 "Session aluminium"
-```
-
-## Installation chez un ami qui a deja des saves
-
-1. Trouver son dossier de saves Satisfactory. Il ressemble a :
-
-```text
-%LOCALAPPDATA%\FactoryGame\Saved\SaveGames\<VOTRE_ID>
-```
-
-2. Ouvrir PowerShell dans ce dossier.
-
-3. Si une save locale porte deja exactement le meme nom, la renommer avant de continuer :
-
-```powershell
-Rename-Item -LiteralPath ".\Saiyajin x10 random MANUAL.sav" -NewName "Saiyajin x10 random MANUAL.local-backup.sav"
-```
-
-4. Initialiser Git dans le dossier existant, sans toucher aux autres saves :
-
-```powershell
-git init
-git lfs install
-git remote add origin https://github.com/llccrr/satisfactory-trio.git
-git fetch origin main
-git switch -c main --track origin/main
-git lfs pull
-```
-
-Les autres `.sav` du dossier restent la, mais Git les ignore.
 
 ## Regle d'or
 
