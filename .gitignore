@@ -1,0 +1,13 @@
+# This repository lives directly in a Satisfactory SaveGames ID folder.
+# Ignore everything by default so personal saves never get committed by accident.
+*
+
+# Repository metadata and helper files.
+!.gitattributes
+!.gitignore
+!README.md
+!pull-shared-save.ps1
+!push-shared-save.ps1
+
+# The only shared save.
+!Saiyajin x10 random MANUAL.sav
