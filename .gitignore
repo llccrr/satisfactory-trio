@@ -9,5 +9,5 @@
 !pull-shared-save.ps1
 !push-shared-save.ps1
 
-# The only shared save.
-!Saiyajin x10 random MANUAL.sav
+# Shared Satisfactory saves for this world.
+!*Saiyajin x10 random*.sav

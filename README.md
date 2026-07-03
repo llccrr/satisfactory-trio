@@ -1,9 +1,17 @@
 # Satisfactory Trio Save
 
-Ce depot partage uniquement cette save :
+Ce depot partage toutes les saves dont le nom contient :
+
+```text
+Saiyajin x10 random
+```
+
+Exemples partages :
 
 ```text
 Saiyajin x10 random MANUAL.sav
+Saiyajin x10 random MANUAL_continue.sav
+Saiyajin x10 random_autosave_0.sav
 ```
 
 Les autres saves Satisfactory restent dans le dossier du joueur et ne sont jamais ajoutees a Git.
@@ -28,7 +36,8 @@ Le script :
 
 - trouve `%LOCALAPPDATA%\FactoryGame\Saved\SaveGames`
 - demande quel dossier joueur utiliser s'il en voit plusieurs
-- sauvegarde automatiquement une save locale du meme nom avant de la remplacer
+- copie toutes les saves `*Saiyajin x10 random*.sav` vers Satisfactory
+- sauvegarde les anciennes saves locales du meme prefixe dans `.satisfactory-trio-backups`
 - memorise ce dossier dans `.satisfactory-target`, un fichier local ignore par Git
 
 ## Routine normale
@@ -39,7 +48,7 @@ Avant de lancer Satisfactory :
 .\pull-shared-save.ps1
 ```
 
-Apres avoir quitte Satisfactory et fait une save manuelle :
+Apres avoir quitte Satisfactory :
 
 ```powershell
 .\push-shared-save.ps1 "Session du soir"
@@ -47,4 +56,4 @@ Apres avoir quitte Satisfactory et fait une save manuelle :
 
 ## Regle d'or
 
-Une seule personne modifie et pousse la save a la fois. Les saves Satisfactory sont des fichiers binaires : Git ne peut pas fusionner deux parties differentes jouees en parallele.
+Une seule personne modifie et pousse les saves a la fois. Les saves Satisfactory sont des fichiers binaires : Git ne peut pas fusionner deux parties differentes jouees en parallele.

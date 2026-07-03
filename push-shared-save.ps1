@@ -6,9 +6,8 @@ $ErrorActionPreference = "Stop"
 
 Set-Location -LiteralPath $PSScriptRoot
 
-$saveName = "Saiyajin x10 random MANUAL.sav"
+$savePattern = "*Saiyajin x10 random*.sav"
 $configName = ".satisfactory-target"
-$repoSave = Join-Path $PSScriptRoot $saveName
 
 function Get-TargetDir {
     $configPath = Join-Path $PSScriptRoot $configName
@@ -24,13 +23,21 @@ function Get-TargetDir {
     return (Resolve-Path -LiteralPath $targetDir).Path
 }
 
+function Get-SharedSaves {
+    param(
+        [string] $Directory
+    )
+
+    return @(Get-ChildItem -LiteralPath $Directory -File -Filter $savePattern | Sort-Object Name)
+}
+
 function Test-SameFile {
     param(
         [string] $Left,
         [string] $Right
     )
 
-    if (-not (Test-Path -LiteralPath $Left) -or -not (Test-Path -LiteralPath $Right)) {
+    if (-not (Test-Path -LiteralPath $Left -PathType Leaf) -or -not (Test-Path -LiteralPath $Right -PathType Leaf)) {
         return $false
     }
 
@@ -38,10 +45,10 @@ function Test-SameFile {
 }
 
 $targetDir = Get-TargetDir
-$targetSave = Join-Path $targetDir $saveName
+$targetSaves = Get-SharedSaves -Directory $targetDir
 
-if (-not (Test-Path -LiteralPath $targetSave -PathType Leaf)) {
-    throw "Save introuvable dans Satisfactory : $targetSave"
+if ($targetSaves.Count -eq 0) {
+    throw "Aucune save a pousser dans Satisfactory : $savePattern"
 }
 
 git lfs install --local | Out-Null
@@ -57,23 +64,31 @@ if ($LASTEXITCODE -eq 0) {
     }
 }
 
-if (-not (Test-SameFile -Left $targetSave -Right $repoSave)) {
-    Copy-Item -LiteralPath $targetSave -Destination $repoSave -Force
+foreach ($targetSave in $targetSaves) {
+    $repoSave = Join-Path $PSScriptRoot $targetSave.Name
+    if (Test-SameFile -Left $targetSave.FullName -Right $repoSave) {
+        continue
+    }
+
+    Copy-Item -LiteralPath $targetSave.FullName -Destination $repoSave -Force
 }
 
-git add -- $saveName
+$repoSaves = Get-SharedSaves -Directory $PSScriptRoot
+foreach ($repoSave in $repoSaves) {
+    git add -- $repoSave.Name
+}
 
-$staged = git diff --cached --name-only -- $saveName
+$staged = git diff --cached --name-only -- $savePattern
 if (-not $staged) {
-    Write-Host "Aucun changement a pousser pour : $saveName"
+    Write-Host "Aucun changement a pousser pour : $savePattern"
     exit 0
 }
 
 if (-not $Message) {
-    $Message = "Update shared save $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+    $Message = "Update shared saves $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
 }
 
 git commit -m $Message
 git push origin main
 
-Write-Host "OK - save Satisfactory poussee vers GitHub : $targetSave"
+Write-Host "OK - saves Satisfactory poussees vers GitHub : $targetDir"

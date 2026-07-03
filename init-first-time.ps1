@@ -6,9 +6,17 @@ $ErrorActionPreference = "Stop"
 
 Set-Location -LiteralPath $PSScriptRoot
 
-$saveName = "Saiyajin x10 random MANUAL.sav"
+$savePattern = "*Saiyajin x10 random*.sav"
 $configName = ".satisfactory-target"
-$repoSave = Join-Path $PSScriptRoot $saveName
+$backupFolderName = ".satisfactory-trio-backups"
+
+function Get-SharedSaves {
+    param(
+        [string] $Directory
+    )
+
+    return @(Get-ChildItem -LiteralPath $Directory -File -Filter $savePattern | Sort-Object Name)
+}
 
 function Get-SelectedSaveDir {
     param(
@@ -55,16 +63,34 @@ function Get-SelectedSaveDir {
     return $dirs[$choice - 1].FullName
 }
 
-function Copy-SaveIfNeeded {
+function Backup-Save {
+    param(
+        [string] $Path,
+        [string] $TargetDir
+    )
+
+    $backupDir = Join-Path $TargetDir $backupFolderName
+    New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+
+    $name = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+    $extension = [System.IO.Path]::GetExtension($Path)
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $backupPath = Join-Path $backupDir "$name.local-backup-$stamp$extension"
+
+    Copy-Item -LiteralPath $Path -Destination $backupPath -Force
+    Write-Host "Backup cree : $backupPath"
+}
+
+function Copy-SaveWithBackup {
     param(
         [string] $Source,
-        [string] $Destination
+        [string] $Destination,
+        [string] $TargetDir
     )
 
     $sourcePath = (Resolve-Path -LiteralPath $Source).Path
-    $destinationExists = Test-Path -LiteralPath $Destination
 
-    if ($destinationExists) {
+    if (Test-Path -LiteralPath $Destination -PathType Leaf) {
         $destinationPath = (Resolve-Path -LiteralPath $Destination).Path
         if ($sourcePath -ieq $destinationPath) {
             return
@@ -73,10 +99,7 @@ function Copy-SaveIfNeeded {
         $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
         $destinationHash = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
         if ($sourceHash -ne $destinationHash) {
-            $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-            $backup = Join-Path (Split-Path -Parent $Destination) "Saiyajin x10 random MANUAL.local-backup-$stamp.sav"
-            Copy-Item -LiteralPath $Destination -Destination $backup
-            Write-Host "Backup cree : $backup"
+            Backup-Save -Path $Destination -TargetDir $TargetDir
         }
     }
 
@@ -86,16 +109,34 @@ function Copy-SaveIfNeeded {
 git lfs install --local | Out-Null
 git lfs pull
 
-if (-not (Test-Path -LiteralPath $repoSave -PathType Leaf)) {
-    throw "Save du depot introuvable : $repoSave"
+$repoSaves = Get-SharedSaves -Directory $PSScriptRoot
+if ($repoSaves.Count -eq 0) {
+    throw "Aucune save partagee trouvee dans le depot : $savePattern"
 }
 
 $targetDir = Get-SelectedSaveDir -ProvidedSaveDir $SaveDir
-$targetSave = Join-Path $targetDir $saveName
+$repoNames = @{}
+foreach ($repoSave in $repoSaves) {
+    $repoNames[$repoSave.Name.ToLowerInvariant()] = $true
+}
+
+$targetSaves = Get-SharedSaves -Directory $targetDir
+foreach ($targetSave in $targetSaves) {
+    $key = $targetSave.Name.ToLowerInvariant()
+    if (-not $repoNames.ContainsKey($key)) {
+        Backup-Save -Path $targetSave.FullName -TargetDir $targetDir
+        Remove-Item -LiteralPath $targetSave.FullName
+    }
+}
+
+foreach ($repoSave in $repoSaves) {
+    $targetSave = Join-Path $targetDir $repoSave.Name
+    Copy-SaveWithBackup -Source $repoSave.FullName -Destination $targetSave -TargetDir $targetDir
+}
 
 Set-Content -LiteralPath (Join-Path $PSScriptRoot $configName) -Value $targetDir -Encoding ASCII
-Copy-SaveIfNeeded -Source $repoSave -Destination $targetSave
 
 Write-Host "OK - depot relie au dossier Satisfactory : $targetDir"
+Write-Host "Saves partagees : $($repoSaves.Count)"
 Write-Host "Avant de jouer : .\pull-shared-save.ps1"
 Write-Host "Apres avoir joue : .\push-shared-save.ps1 `"message`""
